@@ -72,7 +72,7 @@ export default function Header({
               aria-label="Open profile menu"
             >
               <img
-                src={session?.user?.image || AVATAR_URL}
+                src={session?.user?.image ?? AVATAR_URL}
                 alt={session?.user?.name || 'Profile'}
                 className="h-full w-full object-cover"
               />

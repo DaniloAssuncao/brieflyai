@@ -77,7 +77,6 @@ export default function Header({ darkMode, toggleDarkMode, toggleSidebar }: Head
             </div>
           ) : (
             <Button
-              variant="default"
               size="sm"
               onClick={() => signOut()}
             >

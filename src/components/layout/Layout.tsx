@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Header from '@/components/layout/Header'
 import Sidebar from '@/components/layout/Sidebar'
@@ -12,32 +12,10 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { data: session } = useSession()
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   
-  // Toggle dark mode and store preference
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode
-    setDarkMode(newDarkMode)
-    localStorage.setItem('darkMode', newDarkMode.toString())
     
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }
-  
-  // Check for saved darkMode preference on mount
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true'
-    setDarkMode(savedDarkMode)
-    
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark')
-    }
-  }, [])
-  
   // Toggle sidebar
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -48,8 +26,6 @@ export default function Layout({ children }: LayoutProps) {
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
         {session && (
           <Header
-            darkMode={darkMode}
-            toggleDarkMode={toggleDarkMode}
             toggleSidebar={toggleSidebar}
           />
         )}

@@ -4,7 +4,25 @@ import bcrypt from 'bcryptjs'
 import connectToDatabase from '@/lib/db'
 import User from '@/models/User'
 
-export const authOptions: NextAuthOptions = {
+// Add type declarations
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      image?: string;
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+  }
+}
+
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -47,10 +65,12 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
-    signIn: '/auth'
+    signIn: '/auth',
+    error: '/auth/error',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -64,8 +84,14 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id
       }
       return session
+    },
+    async redirect({ baseUrl }) {
+      // Always redirect to dashboard after successful login
+      return `${baseUrl}/dashboard`
     }
-  }
+  },
+  secret: process.env.NEXTAUTH_SECRET || 'your-temporary-secret-key',
+  debug: false
 }
 
 const handler = NextAuth(authOptions)
