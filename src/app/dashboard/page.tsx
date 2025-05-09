@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Star, Settings, ChevronLeft, ChevronRight, Youtube, Mail, Tag, Search } from 'lucide-react';
 import ContentCard from '@/components/dashboard/ContentCard';
+import Header from '@/components/layout/Header'
 
 type Source = {
   name: string;
@@ -52,18 +53,6 @@ function Sidebar({  collapsed, onToggle }: { collapsed: boolean; onToggle: () =>
         </div>
       </aside>
     </>
-  );
-}
-
-function Header() {
-  return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 w-full sticky top-0 z-50">
-      <div className="w-full px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="text-gray-700 dark:text-gray-200 text-xl font-semibold tracking-wide select-none">Briefly<span className="text-teal-500 dark:text-teal-400">AI</span></span>
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -150,7 +139,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-16 md:pb-0">
-      <Header />
+      <Header toggleSidebar={() => setSidebarCollapsed(c => !c)} />
       <div className="flex">
         <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
         <main className={`flex-1 w-full max-w-full px-2 sm:px-4 py-4 md:py-6 md:pl-4 md:pr-6 md:max-w-5xl md:mx-auto ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>

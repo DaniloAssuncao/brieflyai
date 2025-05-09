@@ -72,13 +72,19 @@ export default function Header({
               aria-label="Open profile menu"
             >
               <img
-                src={AVATAR_URL}
-                alt="Profile"
+                src={session?.user?.image || AVATAR_URL}
+                alt={session?.user?.name || 'Profile'}
                 className="h-full w-full object-cover"
               />
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2 z-50 animate-fade-in">
+                {session?.user && (
+                  <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800 mb-2">
+                    <div className="font-medium">{session.user.name}</div>
+                    <div className="text-xs text-gray-500">{session.user.email}</div>
+                  </div>
+                )}
                 <button
                   className="flex items-center w-full px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-base"
                   onClick={handleSettingsClick}
