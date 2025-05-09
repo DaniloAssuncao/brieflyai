@@ -6,16 +6,13 @@ import { useRouter } from 'next/navigation'
 import { LogOut, Settings, Menu } from 'lucide-react'
 
 interface HeaderProps {
-  darkMode: boolean
-  toggleDarkMode: () => void
+
   toggleSidebar: () => void
 }
 
 const AVATAR_URL = 'https://randomuser.me/api/portraits/men/32.jpg' // Placeholder avatar
 
 export default function Header({
-  darkMode,
-  toggleDarkMode,
   toggleSidebar,
 }: HeaderProps) {
   const { data: session } = useSession()

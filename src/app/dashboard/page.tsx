@@ -1,7 +1,15 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Menu, Home, Star, Settings, ChevronLeft, ChevronRight, Youtube, Mail, Globe, Tag, Search } from 'lucide-react';
+import { Home, Star, Settings, ChevronLeft, ChevronRight, Youtube, Mail, Tag, Search } from 'lucide-react';
 import ContentCard from '@/components/dashboard/ContentCard';
+
+type Source = {
+  name: string;
+  avatarUrl: string;
+  type: 'article' | 'youtube' | 'newsletter' | 'other';
+  url: string;
+};
+
 
 type Content = {
   _id?: string;
@@ -9,59 +17,14 @@ type Content = {
   title: string;
   summary: string;
   tags: string[];
-  source: {
-    name: string;
-    avatarUrl: string;
-    type: string;
-    url: string;
-  };
+  source: Source; // Use the Source type here
   date: string;
   readTime: string;
   favorite: boolean;
   originalUrl: string;
 };
 
-const mockContent = [
-  {
-    id: 1,
-    title: 'The Future of AI: Beyond ChatGPT and Large Language Models',
-    summary: 'This video explores the next frontiers in artificial intelligence beyond large language models like ChatGPT. Key topics include multimodal AI systems that can process and generate different types of data (text, images, audio), AI agents capable of reasoning and planning, and advancements in reinforcement learning from human feedback.',
-    tags: ['AI', 'Technology', 'Future'],
-    source: {
-      name: 'Tech Insights',
-      avatarUrl: 'https://yt3.ggpht.com/ytc/AMLnZu9vQw7Qw7Qw7Qw7Qw7Qw7Qw7Qw7Qw7Qw7Qw7Q=s88-c-k-c0x00ffffff-no-rj',
-      type: 'youtube',
-      url: 'https://www.youtube.com/channel/UC123456789',
-    },
-    date: 'Sep 25, 2023',
-    readTime: '4 min read',
-    favorite: false,
-    originalUrl: 'https://www.youtube.com/watch?v=abcdefghij',
-  },
-  {
-    id: 2,
-    title: 'Sample Article',
-    summary: 'This is a sample article summary.',
-    tags: ['Sample', 'Article'],
-    source: {
-      name: 'Sample News',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-      type: 'article',
-      url: 'https://news.example.com',
-    },
-    date: 'Sep 20, 2023',
-    readTime: '3 min read',
-    favorite: true,
-    originalUrl: 'https://news.example.com/article',
-  },
-];
 
-const contentTypes = [
-  { label: 'All', value: 'all' },
-  { label: 'YouTube', value: 'youtube' },
-  { label: 'Websites', value: 'article' },
-  { label: 'Newsletters', value: 'newsletter' },
-];
 
 const tabTypes = [
   { label: 'All', value: 'all' },
@@ -71,7 +34,7 @@ const tabTypes = [
   { label: 'Newsletters', value: 'newsletter' },
 ];
 
-function Sidebar({ isOpen, onClose, collapsed, onToggle }: { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void }) {
+function Sidebar({  collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return (
     <>
       {/* Sidebar only on desktop */}
@@ -92,15 +55,11 @@ function Sidebar({ isOpen, onClose, collapsed, onToggle }: { isOpen: boolean; on
   );
 }
 
-function Header({ onMenuClick }: { onMenuClick: () => void }) {
+function Header() {
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 w-full sticky top-0 z-50">
       <div className="w-full px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Menu icon only on desktop */}
-          <button className="hidden md:inline-flex p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" onClick={onMenuClick} aria-label="Open sidebar">
-            <Menu size={24} />
-          </button>
           <span className="text-gray-700 dark:text-gray-200 text-xl font-semibold tracking-wide select-none">Briefly<span className="text-teal-500 dark:text-teal-400">AI</span></span>
         </div>
       </div>
@@ -136,13 +95,12 @@ function BottomNav() {
 }
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [typeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
@@ -154,8 +112,13 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error('Failed to fetch content');
         const data = await res.json();
         setContent(data);
-      } catch (err: any) {
-        setError(err.message || 'Error fetching content');
+        
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || 'Error fetching content');
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -163,8 +126,14 @@ export default function DashboardPage() {
     fetchContent();
   }, []);
 
-  const handleToggleFavorite = (id: string | number | undefined) => {
-    setContent(prev => prev.map(item => (item._id === id || item.id === id) ? { ...item, favorite: !item.favorite } : item));
+   const handleToggleFavorite = (id: string | number | undefined) => {
+    setContent(prev =>
+      prev.map(item =>
+        item._id === id || item.id === id
+          ? { ...item, favorite: !item.favorite }
+          : item
+      )
+    );
   };
 
   // Filter content by search and type/tab
@@ -172,7 +141,7 @@ export default function DashboardPage() {
     const matchesSearch =
       item.title.toLowerCase().includes(search.toLowerCase()) ||
       item.summary.toLowerCase().includes(search.toLowerCase());
-    let matchesType =
+    const matchesType =
       (activeTab === 'all' && (typeFilter === 'all' || item.source.type === typeFilter)) ||
       (activeTab === 'favorites' && item.favorite) ||
       (activeTab !== 'all' && activeTab !== 'favorites' && item.source.type === activeTab);
@@ -181,14 +150,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-16 md:pb-0">
-      <Header onMenuClick={() => setSidebarOpen(true)} />
+      <Header />
       <div className="flex">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
+        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
         <main className={`flex-1 w-full max-w-full px-2 sm:px-4 py-4 md:py-6 md:pl-4 md:pr-6 md:max-w-5xl md:mx-auto ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
           {/* Welcome section */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold mb-1">Good morning, Danilo! 👋</h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Here's your personalized feed. Stay updated with AI-summarized content from your favorite sources.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Here&apos;s your personalized feed. Stay updated with AI-summarized content from your favorite sources.</p>
           </div>
           {/* Sticky search/filter bar with embedded tabs */}
           <div className="sticky top-20 z-30 mb-6">
@@ -227,17 +196,17 @@ export default function DashboardPage() {
             {loading && <div className="text-center text-gray-500 dark:text-gray-400">Loading...</div>}
             {error && <div className="text-center text-red-500">{error}</div>}
             {!loading && !error && filteredContent.map(item => (
-              <ContentCard
-                key={item._id || item.id}
-                title={item.title}
-                summary={item.summary}
-                tags={item.tags}
-                source={item.source as any}
-                date={item.date}
-                readTime={item.readTime}
-                favorite={item.favorite}
-                onToggleFavorite={() => handleToggleFavorite(item._id || item.id)}
-                originalUrl={item.originalUrl}
+               <ContentCard
+              key={item._id || item.id}
+              title={item.title}
+              summary={item.summary}
+              tags={item.tags}
+              source={item.source} // Correctly typed source
+              date={item.date}
+              readTime={item.readTime}
+              favorite={item.favorite}
+              onToggleFavorite={() => handleToggleFavorite(item._id || item.id)}
+              originalUrl={item.originalUrl}
               />
             ))}
           </div>

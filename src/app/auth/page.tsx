@@ -8,7 +8,7 @@ import LoginForm from '@/components/auth/LoginForm'
 export default function AuthPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isLogin, setIsLogin] = useState(true)
+  //const [isLogin, setIsLogin] = useState(true)
   const [loginError, setLoginError] = useState<string | null>(null)
 
   // Handle login with NextAuth

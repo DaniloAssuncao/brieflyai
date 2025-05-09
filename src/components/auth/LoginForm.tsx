@@ -93,7 +93,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       try {
         console.log('Calling onLogin', { email, password, rememberMe });
         await onLogin(email, password, rememberMe);
-      } catch (error) {
+      } catch {
         // Error handling is done in the parent component
       } finally {
         setIsLoading(false);
@@ -200,7 +200,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           Continue with Google
         </Button>
         <div className="text-center mt-4">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Don't have an account? </span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Don&apos;t have an account? </span>
           <button
             type="button"
             className="text-blue-600 dark:text-blue-400 hover:underline font-medium"

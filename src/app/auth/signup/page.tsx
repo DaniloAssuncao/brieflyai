@@ -23,8 +23,12 @@ export default function SignupPage() {
       }
       // On success, redirect to login
       router.push('/auth');
-    } catch (err: any) {
-      setSignupError(err.message || 'Failed to create account');
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+        setSignupError(err.message || 'Failed to create account');
+        } else {
+        setSignupError('An unknown error occurred');
+        }
     }
   };
 
