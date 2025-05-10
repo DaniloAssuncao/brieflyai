@@ -14,11 +14,16 @@ export default function Layout({ children }: LayoutProps) {
   const { data: session } = useSession()
   const [darkMode] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   
     
   // Toggle sidebar
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(prev => !prev)
   }
   
   return (
@@ -35,7 +40,9 @@ export default function Layout({ children }: LayoutProps) {
             <div className="hidden md:block">
               <Sidebar 
                 isOpen={isSidebarOpen} 
-                toggleSidebar={toggleSidebar} 
+                toggleSidebar={toggleSidebar}
+                collapsed={isSidebarCollapsed}
+                onToggleCollapse={toggleSidebarCollapse}
               />
             </div>
           )}

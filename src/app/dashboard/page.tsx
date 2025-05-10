@@ -1,8 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Home, Star, Settings, ChevronLeft, ChevronRight, Youtube, Mail, Tag, Search } from 'lucide-react';
+import {  Search } from 'lucide-react';
 import ContentCard from '@/components/dashboard/ContentCard';
-import Header from '@/components/layout/Header'
+import {useSession } from 'next-auth/react';
+import Layout from '@/components/layout/Layout';
 
 type Source = {
   name: string;
@@ -11,21 +12,18 @@ type Source = {
   url: string;
 };
 
-
 type Content = {
   _id?: string;
   id?: number;
   title: string;
   summary: string;
   tags: string[];
-  source: Source; // Use the Source type here
+  source: Source;
   date: string;
   readTime: string;
   favorite: boolean;
   originalUrl: string;
 };
-
-
 
 const tabTypes = [
   { label: 'All', value: 'all' },
@@ -35,56 +33,7 @@ const tabTypes = [
   { label: 'Newsletters', value: 'newsletter' },
 ];
 
-function Sidebar({  collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-  return (
-    <>
-      {/* Sidebar only on desktop */}
-      <aside className={`hidden md:flex md:flex-col md:relative md:h-screen md:z-10 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ${collapsed ? 'md:w-16' : 'md:w-64'}`}>
-        <div className="h-full flex flex-col py-6">
-          {/* Collapse/Expand button for desktop */}
-          <button className="mb-4 ml-auto mr-2 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-          <nav className={`flex flex-col gap-1 px-2 ${collapsed ? 'items-center' : ''}`}>
-            <a className={`flex items-center py-2 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 font-medium gap-2 ${collapsed ? 'justify-center' : ''}`} href="#"><Home size={20} />{!collapsed && 'Feed'}</a>
-            <a className={`flex items-center py-2 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 font-medium gap-2 ${collapsed ? 'justify-center' : ''}`} href="#"><Star size={20} />{!collapsed && 'Favorites'}</a>
-            <a className={`flex items-center py-2 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 font-medium gap-2 ${collapsed ? 'justify-center' : ''}`} href="#"><Settings size={20} />{!collapsed && 'Settings'}</a>
-          </nav>
-        </div>
-      </aside>
-    </>
-  );
-}
-
-function BottomNav() {
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-16 md:hidden">
-      <a href="#" className="flex flex-col items-center text-xs text-gray-700 dark:text-gray-200 hover:text-teal-500 dark:hover:text-teal-400">
-        <Home size={22} />
-        Feed
-      </a>
-      <a href="#" className="flex flex-col items-center text-xs text-gray-700 dark:text-gray-200 hover:text-teal-500 dark:hover:text-teal-400">
-        <Star size={22} />
-        Favs
-      </a>
-      <a href="#" className="flex flex-col items-center text-xs text-gray-700 dark:text-gray-200 hover:text-teal-500 dark:hover:text-teal-400">
-        <Youtube size={22} />
-        YT
-      </a>
-      <a href="#" className="flex flex-col items-center text-xs text-gray-700 dark:text-gray-200 hover:text-teal-500 dark:hover:text-teal-400">
-        <Mail size={22} />
-        News
-      </a>
-      <a href="#" className="flex flex-col items-center text-xs text-gray-700 dark:text-gray-200 hover:text-teal-500 dark:hover:text-teal-400">
-        <Tag size={22} />
-        Topics
-      </a>
-    </nav>
-  );
-}
-
 export default function DashboardPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,19 +86,19 @@ export default function DashboardPage() {
     return matchesSearch && matchesType;
   });
 
+  const { data: session } = useSession(); 
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-16 md:pb-0">
-      <Header toggleSidebar={() => setSidebarCollapsed(c => !c)} />
-      <div className="flex">
-        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
-        <main className={`flex-1 w-full max-w-full px-2 sm:px-4 py-4 md:py-6 md:pl-4 md:pr-6 md:max-w-5xl md:mx-auto ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+    <Layout>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-16 md:pb-0">
+        <main className="flex-1 w-full max-w-full px-2 sm:px-4 py-4 md:py-6 md:pl-4 md:pr-6 md:max-w-5xl md:mx-auto">
           {/* Welcome section */}
           <div className="mb-4">
-            <h1 className="text-2xl font-bold mb-1">Good morning, Danilo! 👋</h1>
+            <h1 className="text-2xl font-bold mb-1">Good morning, {session?.user?.name}! 👋</h1>
             <p className="text-gray-600 dark:text-gray-400 mb-4">Here&apos;s your personalized feed. Stay updated with AI-summarized content from your favorite sources.</p>
           </div>
           {/* Sticky search/filter bar with embedded tabs */}
-          <div className="sticky top-20 z-30 mb-6">
+          <div className="mb-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow flex flex-col w-full px-4 py-3">
               {/* Search Bar left, Tabs right */}
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
@@ -190,7 +139,7 @@ export default function DashboardPage() {
               title={item.title}
               summary={item.summary}
               tags={item.tags}
-              source={item.source} // Correctly typed source
+              source={item.source}
               date={item.date}
               readTime={item.readTime}
               favorite={item.favorite}
@@ -201,7 +150,6 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
-      <BottomNav />
-    </div>
+    </Layout>
   );
 } 
