@@ -37,7 +37,7 @@ export default function Layout({ children }: LayoutProps) {
         
         <div className="flex">
           {session && (
-            <div className="border-r dark:border-gray-800 dark:bg-gray-900 " >
+            <div className="border-r dark:border-gray-800 dark:bg-gray-900" >
               <Sidebar 
                 isOpen={isSidebarOpen} 
                 toggleSidebar={toggleSidebar}
