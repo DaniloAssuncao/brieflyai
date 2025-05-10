@@ -1,6 +1,8 @@
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 export default withAuth(
   function middleware(req) {
     // If not authenticated, redirect to /auth
@@ -10,7 +12,7 @@ export default withAuth(
         from += req.nextUrl.search
       }
       return NextResponse.redirect(
-        new URL(`/auth?from=${encodeURIComponent(from)}`, req.url)
+        new URL(`/auth?from=${encodeURIComponent(from)}`, baseUrl)
       )
     }
     // Otherwise, allow
