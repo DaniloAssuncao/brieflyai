@@ -36,7 +36,9 @@ export default function Sidebar({ isOpen, toggleSidebar, collapsed, onToggleColl
   }
 
   return ( 
-    <aside>
+    <aside className={`border-r dark:border-gray-800 dark:bg-gray-900 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    } ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
       <div className="h-full flex flex-col py-6">
         {/* Collapse/Expand button for desktop */}
         <button 
