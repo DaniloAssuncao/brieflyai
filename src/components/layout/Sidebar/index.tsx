@@ -35,10 +35,8 @@ export default function Sidebar({ isOpen, toggleSidebar, collapsed, onToggleColl
     onToggleCollapse()
   }
 
-  return (
-    <aside className={`fixed inset-y-0 left-0 z-40 transform border-r border-gray-200 bg-white transition-all duration-200 ease-in-out dark:border-gray-800 dark:bg-gray-900 lg:relative lg:translate-x-0 ${
-      isOpen ? 'translate-x-0' : '-translate-x-full'
-    } ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
+  return ( 
+    <aside>
       <div className="h-full flex flex-col py-6">
         {/* Collapse/Expand button for desktop */}
         <button 
