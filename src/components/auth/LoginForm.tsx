@@ -3,8 +3,6 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
-console.log('Form rendered');
-
 interface LoginFormProps {
   onLogin: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   onSwitchToSignup: () => void;
@@ -86,12 +84,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
     e.preventDefault();
     setTouched({ email: true, password: true });
     setSubmitted(true);
-    console.log('LoginForm handleSubmit called', { email, password });
-
+    
     if (validateForm()) {
       setIsLoading(true);
       try {
-        console.log('Calling onLogin', { email, password, rememberMe });
+        
         await onLogin(email, password, rememberMe);
       } catch {
         // Error handling is done in the parent component
