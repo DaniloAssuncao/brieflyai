@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Star, ExternalLink, Youtube } from 'lucide-react';
 
 interface ContentCardProps {
@@ -29,8 +29,35 @@ const ContentCard: React.FC<ContentCardProps> = ({
   onToggleFavorite,
   originalUrl,
 }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const summaryRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = summaryRef.current;
+    if (el) {
+      setIsTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [summary]);
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    // Prevent toggling when clicking on favorite or external link
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('a')
+    ) {
+      return;
+    }
+    setExpanded(prev => !prev);
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col gap-2 relative">
+    <div
+      className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col gap-2 relative cursor-pointer"
+      onClick={handleCardClick}
+      title={expanded ? 'Click to collapse' : 'Click to expand'}
+    >
       {/* Source and Date */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -42,7 +69,23 @@ const ContentCard: React.FC<ContentCardProps> = ({
       {/* Title */}
       <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">{title}</h3>
       {/* Summary */}
-      <p className="text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{summary}</p>
+      <p
+        ref={summaryRef}
+        className={`text-gray-700 dark:text-gray-300 mb-2 ${expanded ? '' : 'line-clamp-3'}`}
+      >
+        {summary}
+      </p>
+      {/* Show more/less button only if truncated */}
+      {isTruncated && (
+        <button
+          type="button"
+          className="self-start text-xs text-blue-600 dark:text-blue-300 underline focus:outline-none mb-2"
+          onClick={e => { e.stopPropagation(); setExpanded(prev => !prev); }}
+          aria-expanded={expanded}
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
       {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-2">
         {tags.map(tag => (
