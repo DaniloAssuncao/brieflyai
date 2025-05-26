@@ -36,10 +36,9 @@ export async function POST(req: Request) {
     })
 
     // Remove password from response
-    //const { password: _password, ...userWithoutPassword } = user.toObject()
-    const {  ...userWithoutPassword } = user.toObject()
+    const { password: _, ...userWithoutPassword } = user.toObject()
 
-    return NextResponse.json(userWithoutPassword)
+    return NextResponse.json(userWithoutPassword, { status: 201 })
   } catch (error) {
     console.error('Error in register:', error)
     return NextResponse.json(
