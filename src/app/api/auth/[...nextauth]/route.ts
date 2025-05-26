@@ -43,6 +43,13 @@ const authOptions: NextAuthOptions = {
             return null
           }
 
+          if (!user.password) {
+            // This case should ideally not happen if passwords are required in the schema
+            // and not explicitly deselected. Log it for investigation.
+            console.error('User object found but password is undefined. User ID:', user._id);
+            return null; // Authentication fails
+          }
+
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
             user.password
