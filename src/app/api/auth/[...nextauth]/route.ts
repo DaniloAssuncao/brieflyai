@@ -60,7 +60,7 @@ const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: user._id.toString(),
+            id: user.id, // Changed to use Mongoose virtual 'id'
             email: user.email,
             name: user.name
           }
