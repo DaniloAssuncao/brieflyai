@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {  Search } from 'lucide-react';
 import ContentCard from '@/components/dashboard/ContentCard';
 import {useSession } from 'next-auth/react';
@@ -40,6 +41,14 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [typeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tabQueryParam = searchParams.get('tab');
+    if (tabQueryParam && tabTypes.some(t => t.value === tabQueryParam)) {
+      setActiveTab(tabQueryParam);
+    }
+  }, [searchParams, setActiveTab]);
 
   useEffect(() => {
     async function fetchContent() {
@@ -49,7 +58,7 @@ export default function DashboardPage() {
         const res = await fetch('/api/content');
         if (!res.ok) throw new Error('Failed to fetch content');
         const data = await res.json();
-        setContent(data);
+        setContent(data.data);
         
       } catch (err: unknown) {
         if (err instanceof Error) {

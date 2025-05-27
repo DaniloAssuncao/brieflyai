@@ -17,8 +17,8 @@ interface MobileNavProps {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'YouTube', href: '/youtube', icon: Youtube },
-  { label: 'Favorites', href: '/favorites', icon: Star },
+  { label: 'YouTube', href: '/dashboard?tab=youtube', icon: Youtube },
+  { label: 'Favorites', href: '/dashboard?tab=favorites', icon: Star },
   { label: 'Settings', href: '/settings', icon: Settings }
 ]
 
