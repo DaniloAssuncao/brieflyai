@@ -12,20 +12,26 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/dashboard')
+      // User is already authenticated, redirect to dashboard
+      window.location.replace('/dashboard')
     }
-  }, [status, router])
+  }, [status])
 
   // Handle login with NextAuth
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
     try {
+      console.log('Attempting login with:', { email, rememberMe })
+      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false
       })
 
+      console.log('Login result:', result)
+
       if (result?.error) {
+        console.error('Login error:', result.error)
         switch (result.error) {
           case 'CredentialsSignin':
             setLoginError('Invalid email or password')
@@ -37,8 +43,11 @@ export default function AuthPage() {
       }
 
       if (result?.ok) {
+        console.log('Login successful, redirecting to dashboard')
         setLoginError(null)
-        router.push('/dashboard')
+        
+        // Force redirect to dashboard
+        window.location.replace('/dashboard')
       }
     } catch (error) {
       console.error('Login error:', error)

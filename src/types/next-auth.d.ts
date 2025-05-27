@@ -1,13 +1,9 @@
 import 'next-auth'
+import { IUserSession } from './user'
 
 declare module 'next-auth' {
   interface Session {
-    user: {
-      id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-    }
+    user: IUserSession
   }
 
   interface User {

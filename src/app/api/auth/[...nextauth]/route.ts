@@ -4,24 +4,6 @@ import bcrypt from 'bcryptjs'
 import connectToDatabase from '@/lib/db'
 import User from '@/models/User'
 
-// Add type declarations
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      image?: string;
-    }
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-  }
-}
-
 const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -31,27 +13,37 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('NextAuth authorize called with:', { email: credentials?.email })
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('Missing credentials')
           return null
         }
 
         try {
+          console.log('Connecting to database...')
           await connectToDatabase()
+          
+          console.log('Looking for user with email:', credentials.email)
           const user = await User.findOne({ email: credentials.email })
 
           if (!user) {
+            console.log('User not found')
             return null
           }
 
+          console.log('User found, checking password...')
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
             user.password
           )
 
           if (!isPasswordValid) {
+            console.log('Invalid password')
             return null
           }
 
+          console.log('Login successful for user:', user.email)
           return {
             id: user._id.toString(),
             email: user.email,
@@ -85,13 +77,17 @@ const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async redirect({ baseUrl }) {
-      // Always redirect to dashboard after successful login
+    async redirect({ url, baseUrl }) {
+      // If url is provided and is a relative path, use it
+      if (url?.startsWith('/')) return `${baseUrl}${url}`
+      // If url is provided and is an absolute URL with the same origin, use it
+      if (url?.startsWith(baseUrl)) return url
+      // Default redirect to dashboard
       return `${baseUrl}/dashboard`
     }
   },
   secret: process.env.NEXTAUTH_SECRET || 'your-temporary-secret-key',
-  debug: false
+  debug: true
 }
 
 const handler = NextAuth(authOptions)

@@ -4,26 +4,10 @@ import {  Search } from 'lucide-react';
 import ContentCard from '@/components/dashboard/ContentCard';
 import {useSession } from 'next-auth/react';
 import Layout from '@/components/layout/Layout';
-
-type Source = {
-  name: string;
-  avatarUrl: string;
-  type: 'article' | 'youtube' | 'newsletter' | 'other';
-  url: string;
-};
-
-type Content = {
-  _id?: string;
-  id?: number;
-  title: string;
-  summary: string;
-  tags: string[];
-  source: Source;
-  date: string;
-  readTime: string;
-  favorite: boolean;
-  originalUrl: string;
-};
+import { IPublicContent } from '@/types';
+import { contentApi } from '@/lib/api-client';
+import ClientOnly from '@/components/ui/ClientOnly';
+import { useToast } from '@/hooks/useToast';
 
 const tabTypes = [
   { label: 'All', value: 'all' },
@@ -34,23 +18,21 @@ const tabTypes = [
 ];
 
 export default function DashboardPage() {
-  const [content, setContent] = useState<Content[]>([]);
+  const [content, setContent] = useState<IPublicContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [typeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     async function fetchContent() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/content');
-        if (!res.ok) throw new Error('Failed to fetch content');
-        const data = await res.json();
+        const data = await contentApi.getAll();
         setContent(data);
-        
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message || 'Error fetching content');
@@ -64,14 +46,49 @@ export default function DashboardPage() {
     fetchContent();
   }, []);
 
-   const handleToggleFavorite = (id: string | number | undefined) => {
-    setContent(prev =>
-      prev.map(item =>
-        item._id === id || item.id === id
-          ? { ...item, favorite: !item.favorite }
-          : item
-      )
-    );
+  const handleToggleFavorite = async (id: string | number | undefined) => {
+    if (!id) return;
+    
+    // Find the current item to get its current favorite status
+    const currentItem = content.find(item => item.id === id);
+    if (!currentItem) return;
+    
+    const willBeFavorite = !currentItem.favorite;
+    
+    try {
+      // Optimistically update the UI
+      setContent(prev =>
+        prev.map(item =>
+          item.id === id
+            ? { ...item, favorite: willBeFavorite }
+            : item
+        )
+      );
+
+      // Call the API to persist the change
+      await contentApi.toggleFavorite(id.toString());
+      
+      // Show success toast
+      showSuccess(
+        willBeFavorite 
+          ? 'Added to favorites!' 
+          : 'Removed from favorites!',
+        2000
+      );
+      
+    } catch (error) {
+      // Revert the optimistic update on error
+      setContent(prev =>
+        prev.map(item =>
+          item.id === id
+            ? { ...item, favorite: !willBeFavorite }
+            : item
+        )
+      );
+      
+      console.error('Failed to toggle favorite:', error);
+      showError('Failed to update favorite status. Please try again.');
+    }
   };
 
   // Filter content by search and type/tab
@@ -94,7 +111,9 @@ export default function DashboardPage() {
         <main className="flex-1 w-full max-w-full px-2 sm:px-4 py-4 md:py-6 md:pl-4 md:pr-6 md:max-w-5xl md:mx-auto">
           {/* Welcome section */}
           <div className="mb-4">
-            <h1 className="text-2xl font-bold mb-1">Good morning, {session?.user?.name}! 👋</h1>
+            <ClientOnly fallback={<h1 className="text-2xl font-bold mb-1">Good morning! 👋</h1>}>
+              <h1 className="text-2xl font-bold mb-1">Good morning, {session?.user?.name}! 👋</h1>
+            </ClientOnly>
             <p className="text-gray-600 dark:text-gray-400 mb-4">Here&apos;s your personalized feed. Stay updated with AI-summarized content from your favorite sources.</p>
           </div>
           {/* Sticky search/filter bar with embedded tabs */}
@@ -135,7 +154,7 @@ export default function DashboardPage() {
             {error && <div className="text-center text-red-500">{error}</div>}
             {!loading && !error && filteredContent.map(item => (
                <ContentCard
-              key={item._id || item.id}
+              key={item.id}
               title={item.title}
               summary={item.summary}
               tags={item.tags}
@@ -143,7 +162,7 @@ export default function DashboardPage() {
               date={item.date}
               readTime={item.readTime}
               favorite={item.favorite}
-              onToggleFavorite={() => handleToggleFavorite(item._id || item.id)}
+              onToggleFavorite={() => handleToggleFavorite(item.id)}
               originalUrl={item.originalUrl}
               />
             ))}

@@ -5,9 +5,11 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 export default withAuth(
   function middleware(req) {
+    const { pathname } = req.nextUrl
+    
     // If not authenticated, redirect to /auth
     if (!req.nextauth.token) {
-      let from = req.nextUrl.pathname
+      let from = pathname
       if (req.nextUrl.search) {
         from += req.nextUrl.search
       }
@@ -15,6 +17,7 @@ export default withAuth(
         new URL(`/auth?from=${encodeURIComponent(from)}`, baseUrl)
       )
     }
+    
     // Otherwise, allow
     return NextResponse.next()
   },
