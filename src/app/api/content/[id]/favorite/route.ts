@@ -12,10 +12,10 @@ const authOptions = {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     log.info(`Toggle favorite request for content ID: ${id}`, 'ContentFavoriteAPI');
 
     // Check authentication
@@ -77,7 +77,8 @@ export async function PATCH(
     } as ApiResponse<IPublicContent>);
 
   } catch (error) {
-    log.error('Failed to toggle favorite status', 'ContentFavoriteAPI', { contentId: params.id }, error as Error);
+    const resolvedParams = await params;
+    log.error('Failed to toggle favorite status', 'ContentFavoriteAPI', { contentId: resolvedParams.id }, error as Error);
     return NextResponse.json(
       { 
         success: false, 

@@ -25,6 +25,7 @@ export default function AuthPage() {
       const result = await signIn('credentials', {
         email,
         password,
+        rememberMe: rememberMe.toString(), // Convert boolean to string for NextAuth
         redirect: false
       })
 
@@ -45,6 +46,15 @@ export default function AuthPage() {
       if (result?.ok) {
         console.log('Login successful, redirecting to dashboard')
         setLoginError(null)
+        
+        // Store remember me preference in localStorage for future reference
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true')
+          localStorage.setItem('rememberedEmail', email)
+        } else {
+          localStorage.removeItem('rememberMe')
+          localStorage.removeItem('rememberedEmail')
+        }
         
         // Force redirect to dashboard
         window.location.replace('/dashboard')

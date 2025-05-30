@@ -10,10 +10,11 @@ const authOptions: NextAuthOptions = {
       name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        rememberMe: { label: 'Remember Me', type: 'checkbox' }
       },
       async authorize(credentials) {
-        console.log('NextAuth authorize called with:', { email: credentials?.email })
+        console.log('NextAuth authorize called with:', { email: credentials?.email, rememberMe: credentials?.rememberMe })
         
         if (!credentials?.email || !credentials?.password) {
           console.log('Missing credentials')
@@ -47,7 +48,8 @@ const authOptions: NextAuthOptions = {
           return {
             id: user._id.toString(),
             email: user.email,
-            name: user.name
+            name: user.name,
+            rememberMe: credentials.rememberMe === 'true'
           }
         } catch (error) {
           console.error('Error in authorize:', error)
@@ -58,22 +60,44 @@ const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    // Dynamic maxAge will be set in the JWT callback
   },
   pages: {
     signIn: '/auth',
     error: '/auth/error',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
+        token.rememberMe = user.rememberMe
+        
+        // Set token expiration based on remember me option
+        const now = Math.floor(Date.now() / 1000)
+        if (user.rememberMe) {
+          // Remember me: 30 days
+          token.exp = now + (30 * 24 * 60 * 60)
+        } else {
+          // Don't remember me: 1 day
+          token.exp = now + (24 * 60 * 60)
+        }
       }
+      
+      // Check if token has expired and should be renewed
+      if (trigger === 'update' && token.exp && Date.now() / 1000 > token.exp) {
+        throw new Error('Token expired') // Better error handling than returning null
+      }
+      
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id
+        session.rememberMe = token.rememberMe
+        // Ensure exp exists before using it
+        if (token.exp) {
+          session.expires = new Date(token.exp * 1000).toISOString()
+        }
       }
       return session
     },
