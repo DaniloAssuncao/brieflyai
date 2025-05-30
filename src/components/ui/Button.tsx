@@ -1,14 +1,5 @@
-import React, { ButtonHTMLAttributes, ReactNode } from 'react';
-
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  leftIcon?: ReactNode;
-  rightIcon?: ReactNode;
-  isLoading?: boolean;
-  fullWidth?: boolean;
-}
+import React from 'react';
+import { ButtonProps } from '@/types/components';
 
 const Button: React.FC<ButtonProps> = ({
   children,
@@ -26,14 +17,18 @@ const Button: React.FC<ButtonProps> = ({
   
   const variantStyles = {
     primary: 'bg-teal-500 hover:bg-teal-600 text-white disabled:bg-teal-300',
+    secondary: 'bg-gray-500 hover:bg-gray-600 text-white disabled:bg-gray-300',
     outline: 'border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200',
     ghost: 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200',
+    danger: 'bg-red-500 hover:bg-red-600 text-white disabled:bg-red-300',
   };
 
   const sizeStyles = {
+    xs: 'px-2 py-1 text-xs',
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-base',
     lg: 'px-6 py-3 text-lg',
+    xl: 'px-8 py-4 text-xl',
   };
 
   return (

@@ -2,16 +2,21 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import connectToDatabase from '@/lib/db'
 import User from '@/models/User'
+import { IUserRegistrationData, IPublicUser, HttpStatusCode } from '@/types'
+import { validateUserRegistration } from '@/lib/validation'
+import { ConflictError, ValidationAppError, createApiError, logError } from '@/lib/errors'
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   try {
-    const { name, email, password } = await req.json()
+    const { name, email, password }: IUserRegistrationData = await req.json()
 
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    // Validate input data
+    const validation = validateUserRegistration({ name, email, password });
+    if (!validation.isValid) {
+      throw new ValidationAppError(
+        'Validation failed',
+        validation.errors
+      );
     }
 
     await connectToDatabase()
@@ -19,10 +24,7 @@ export async function POST(req: Request) {
     // Check if user already exists
     const existingUser = await User.findOne({ email })
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'User already exists' },
-        { status: 400 }
-      )
+      throw new ConflictError('A user with this email already exists');
     }
 
     // Hash password
@@ -35,16 +37,34 @@ export async function POST(req: Request) {
       password: hashedPassword
     })
 
-    // Remove password from response
-    //const { password: _password, ...userWithoutPassword } = user.toObject()
-    const {  ...userWithoutPassword } = user.toObject()
+    // Create public user response (without password)
+    const publicUser: IPublicUser = {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
 
-    return NextResponse.json(userWithoutPassword)
-  } catch (error) {
-    console.error('Error in register:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        success: true,
+        data: publicUser,
+        message: 'User created successfully'
+      },
+      { status: HttpStatusCode.CREATED }
     )
+  } catch (error) {
+    logError(error, 'POST /api/auth/register');
+    const apiError = createApiError(error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: apiError.error,
+        message: apiError.message,
+      },
+      { status: apiError.statusCode }
+    );
   }
 } 

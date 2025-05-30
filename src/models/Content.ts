@@ -1,4 +1,5 @@
 import mongoose, { Schema, models } from 'mongoose';
+import { IContentDocument } from '@/types/content';
 
 const ContentSchema = new Schema({
   title: { type: String, required: true },
@@ -7,13 +8,15 @@ const ContentSchema = new Schema({
   source: {
     name: String,
     avatarUrl: String,
-    type: { type: String, enum: ['youtube', 'article', 'newsletter'] },
+    type: { type: String, enum: ['youtube', 'article', 'newsletter'] as const },
     url: String,
   },
   date: { type: Date, required: true },
   readTime: String,
   favorite: { type: Boolean, default: false },
   originalUrl: String,
+}, {
+  timestamps: true
 });
 
-export default models.Content || mongoose.model('Content', ContentSchema); 
+export default models.Content || mongoose.model<IContentDocument>('Content', ContentSchema); 

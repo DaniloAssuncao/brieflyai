@@ -1,12 +1,5 @@
-import React, { InputHTMLAttributes, ReactNode } from 'react';
-
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  leftIcon?: ReactNode;
-  rightIcon?: ReactNode;
-  onRightIconClick?: () => void;
-  error?: string;
-  fullWidth?: boolean;
-}
+import React from 'react';
+import { InputProps } from '@/types/components';
 
 const Input: React.FC<InputProps> = ({
   leftIcon,

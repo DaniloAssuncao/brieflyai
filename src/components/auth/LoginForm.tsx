@@ -30,6 +30,17 @@ const LoginForm: React.FC<LoginFormProps> = ({
   });
   const [submitted, setSubmitted] = useState(false);
 
+  // Load remembered credentials on component mount
+  useEffect(() => {
+    const wasRemembered = localStorage.getItem('rememberMe') === 'true';
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    
+    if (wasRemembered && rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   // Clear login error when user starts typing
   useEffect(() => {
     if (setLoginError) setLoginError(null);

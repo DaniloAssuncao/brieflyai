@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { LogOut, Settings, Menu } from 'lucide-react'
+import { LogOut, Settings, Menu, Shield } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
 
 interface HeaderProps {
   toggleSidebar: () => void
@@ -45,6 +46,15 @@ export default function Header({
     router.push('/settings')
   }
 
+  const handleAdminClick = () => {
+    setMenuOpen(false)
+    router.push('/admin')
+  }
+
+  // Check if user is admin
+  const isAdmin = session?.user?.email === 'danilovictor00@gmail.com' || 
+                  session?.user?.email === 'admin@brieflyai.com'
+
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 w-full sticky top-0 z-50">
       <div className="w-full px-4 h-16 flex items-center justify-between">
@@ -71,9 +81,11 @@ export default function Header({
               onClick={() => setMenuOpen((open) => !open)}
               aria-label="Open profile menu"
             >
-              <img
+              <SafeImage
                 src={session?.user?.image ?? AVATAR_URL}
                 alt={session?.user?.name || 'Profile'}
+                width={40}
+                height={40}
                 className="h-full w-full object-cover"
               />
             </button>
@@ -92,6 +104,15 @@ export default function Header({
                   <Settings className="mr-3" size={20} />
                   Settings
                 </button>
+                {isAdmin && (
+                  <button
+                    className="flex items-center w-full px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-base text-orange-600 dark:text-orange-400"
+                    onClick={handleAdminClick}
+                  >
+                    <Shield className="mr-3" size={20} />
+                    Admin Dashboard
+                  </button>
+                )}
                 <button
                   className="flex items-center w-full px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-base"
                   onClick={handleSignOut}

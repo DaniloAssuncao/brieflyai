@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Star, ExternalLink, Youtube } from 'lucide-react';
+import SafeImage from '@/components/ui/SafeImage';
 
 interface ContentCardProps {
   title: string;
@@ -31,6 +32,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const summaryRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
@@ -61,7 +63,13 @@ const ContentCard: React.FC<ContentCardProps> = ({
       {/* Source and Date */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <img src={source.avatarUrl} alt={source.name} className="w-8 h-8 rounded-md object-cover" />
+          <SafeImage 
+            src={source.avatarUrl} 
+            alt={source.name} 
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-md object-cover" 
+          />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{source.name}</span>
         </div>
         <span className="text-xs text-gray-400">{date}</span>
@@ -99,11 +107,29 @@ const ContentCard: React.FC<ContentCardProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={onToggleFavorite}
-            className={`p-1 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900 transition-colors ${favorite ? 'text-yellow-500' : 'text-gray-400'}`}
-            aria-label={favorite ? 'Unfavorite' : 'Favorite'}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setIsTogglingFavorite(true);
+              try {
+                await onToggleFavorite();
+              } finally {
+                setIsTogglingFavorite(false);
+              }
+            }}
+            disabled={isTogglingFavorite}
+            className={`p-1 rounded-full transition-all duration-200 ${
+              isTogglingFavorite 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-yellow-100 dark:hover:bg-yellow-900 hover:scale-110'
+            } ${favorite ? 'text-yellow-500' : 'text-gray-400'}`}
+            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+            title={favorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Star fill={favorite ? 'currentColor' : 'none'} size={20} />
+            <Star 
+              fill={favorite ? 'currentColor' : 'none'} 
+              size={20} 
+              className={`transition-transform duration-200 ${isTogglingFavorite ? 'animate-pulse' : ''}`}
+            />
           </button>
           <a
             href={originalUrl}
